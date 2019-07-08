@@ -3,6 +3,6 @@
 
 require 'xpm2tikz'
 
-include PixelRaster
+include PixelRaster::XPM2TIKZ
 
 command_line
