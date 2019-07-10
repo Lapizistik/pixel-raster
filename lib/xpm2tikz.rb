@@ -7,6 +7,10 @@ require 'optparse'
 module PixelRaster
 
   module XPM2TIKZ
+
+    # Parse command line arguments (+ARGV+) and process accordingly
+    #
+    # See +xpm2tikz -h+ for a list of options.
     def command_line
       out = $stdout
       

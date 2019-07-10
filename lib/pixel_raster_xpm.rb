@@ -2,10 +2,20 @@
 
 module PixelRaster
 
+  # This module holds the (old) code used for +xpm2tikz+.
+  # The implementation is very hands-on, only gives a black and white raster
+  # representation as tikz and may not work on more complex xpm files.
+  # The only advantage compared to +img2pixel+ is that it works without
+  # the +RMagick+ gem (which may be somehow complicated to install on some
+  # systems).
   module XPM2TIKZ
-    # read xpm files
-    # this is not very robust but assumes a straight forward file format
+    # Read an xpm file.
+    #
+    # This is not very robust but assumes a straight forward file format
     # without color/grayscale etc being mixed.
+    #
+    # @param filename [String] the file to read
+    # @return [Array<Array<String>>] two dimensional array with color codes
     def read_xpm(filename)
       lines = File.readlines(filename)
       lines.shift # get rid of  /* XPM */
@@ -27,7 +37,13 @@ module PixelRaster
         lines.shift[1..n_x].scan(/.{#{n_of_chars}}/).collect { |c| colors[c] }
       end
     end
-    
+
+    # Create a tikzpicture from a xpm file (see #read_xpm for restrictions).
+    #
+    # @param filename [String] the file to read
+    # @param prefix [String] the prefix of the tikz node style name
+    # @return [String] the tikzpicture code
+    # @see #read_xpm
     def xpm2tikz(filename, prefix="n")
       xpm = read_xpm(filename)
       "\\begin{tikzpicture}[yscale=-1]
