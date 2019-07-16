@@ -17,8 +17,8 @@ end
 module PixelRaster
   class MagickConverter
 
-    # The converter is initialized with the constraints like size
-    # and number of colors for the images to be processed.
+    # The converter is initialized with the constraints
+    # for the images to be processed.
     #
     # Any image must have a color index (palette), this is enforced.
     # It is not that useful to have more than 10 colors or more than 30x30
@@ -29,10 +29,12 @@ module PixelRaster
     # @param nr_of_colors      maximum number of colors for the color index
     # @param resize [String]   resize string (see ImageMagick resize option)
     # @param light2dark [Boolean] if true 0 is the lightest color
-    def initialize(nr_of_colors: nil, resize: nil, light2dark: true)
+    def initialize(nr_of_colors: nil, resize: nil, light2dark: true,
+                  type: 'svg')
       @nr_of_colors = nr_of_colors
       @resize = resize
       @light2dark = light2dark
+      @type = type
     end
     
     # Reads an image using RMagick and adjusts size and palette.
@@ -71,6 +73,24 @@ module PixelRaster
       return image
     end
 
+    # Wrapper for the converter methods.
+    #
+    # @param mode: [Symbol] the output mode (:empty or :full)
+    # @param type: [String] the output type ("svg" or "tikz")
+    # @see #image2tikz
+    # @see #image2svg
+    def convert(filename, mode:, type: @type)
+      img = read_image(filename)
+      case type
+      when 'tikz'
+        image2tikz(img, mode==:empty ? 'n' : 'y')
+      when 'svg'
+        image2svg(img, mode: mode)
+      else
+        raise "unknown output type #{type}"
+      end
+    end
+    
     
     def image2tikz(img, prefix="n")
       
@@ -90,7 +110,7 @@ module PixelRaster
       tikz
     end
 
-    def image2svg(img, outfile: nil, mode: :empty)
+    def image2svg(img, mode: :empty)
       
       colormap = compute_colormap(img)
 
