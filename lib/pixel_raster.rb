@@ -27,14 +27,19 @@ module PixelRaster
     # @see #read_image
     #
     # @param nr_of_colors      maximum number of colors for the color index
+    # @param bg_color          background color for empty pixel image
     # @param resize [String]   resize string (see ImageMagick resize option)
     # @param light2dark [Boolean] if true 0 is the lightest color
-    def initialize(nr_of_colors: nil, resize: nil, light2dark: true,
-                  type: 'svg')
+    # @param type [:svg|:tikz] 
+    def initialize(nr_of_colors: nil, bg_color: 'white',
+                   resize: nil, light2dark: true,
+                   type: :svg)
       @nr_of_colors = nr_of_colors
+      @bg_color = bg_color
       @resize = resize
       @light2dark = light2dark
       @type = type
+      yield(self) if block_given?
     end
     
     # Reads an image using RMagick and adjusts size and palette.
@@ -75,16 +80,16 @@ module PixelRaster
 
     # Wrapper for the converter methods.
     #
-    # @param mode: [Symbol] the output mode (:empty or :full)
-    # @param type: [String] the output type ("svg" or "tikz")
+    # @param mode [:empty|:filled] the output mode
+    # @param type [:svg|:tikz] the output type
     # @see #image2tikz
     # @see #image2svg
     def convert(filename, mode:, type: @type)
       img = read_image(filename)
       case type
-      when 'tikz'
-        image2tikz(img, mode==:empty ? 'n' : 'y')
-      when 'svg'
+      when :tikz
+        image2tikz(img, prefix: mode==:empty ? 'n' : 'y')
+      when :svg
         image2svg(img, mode: mode)
       else
         raise "unknown output type #{type}"
@@ -92,7 +97,11 @@ module PixelRaster
     end
     
     
-    def image2tikz(img, prefix="n")
+    # create a tikz pixel representation of an image.
+    #
+    # @param img [Magick::Image] the image
+    # @param prefix [String] node class prefix (to distinguish empty and filled mode)
+    def image2tikz(img, prefix: "n")
       
       colormap = compute_colormap(img)
     
@@ -110,6 +119,10 @@ module PixelRaster
       tikz
     end
 
+    # create a svg pixel representation of an image.
+    #
+    # @param img [Magick::Image] the image
+    # @param mode [:empty|:filled] fill mode
     def image2svg(img, mode: :empty)
       
       colormap = compute_colormap(img)
@@ -121,19 +134,28 @@ module PixelRaster
       yht = 15
 
       # We create the SVG directly by string
-      svg = %Q{<svg xmlns="http://www.w3.org/2000/svg">
+      svg = %Q'<svg xmlns="http://www.w3.org/2000/svg">
    <style>
      .pixel {
        stroke : black;
        stroke-width : 1;
+'
+      if mode == :empty
+        svg << "      
+       fill: #{@bg_color};
+"
+      end
+      svg << '
      }
-}
-      colormap.each do |k,v|
-        color = k.to_color(Magick::AllCompliance,false, 8, true)
-        textcolor = k.to_hsla[2] > 50 ? 'black' : 'white'
-        svg << %Q{    .p#{v} { fill: #{color}; }\n}
+'
+      if mode == :filled
+        colormap.each do |k,v|
+          color = k.to_color(Magick::AllCompliance,false, 8, true)
+          textcolor = k.to_hsla[2] > 50 ? 'black' : 'white'
+          svg << %Q{    .p#{v} { fill: #{color}; }\n}
         
-        svg << %Q{    .t#{v} { fill: #{textcolor}; }\n}
+          svg << %Q{    .t#{v} { fill: #{textcolor}; }\n}
+        end
       end
       svg << %Q{    </style>\n}
       img.each_pixel do |p, c, r|
@@ -146,8 +168,9 @@ module PixelRaster
     end
 
     # compute an ordered colormap for the image
-    # @param img [Magick::Image] the image 
-    def compute_colormap(img)
+    # @param img [Magick::Image] the image
+    # @param light2dark [Boolean] whether to invert the color map
+    def compute_colormap(img, light2dark: @light2dark)
       # we create a colormap sorted from dark to light
       colormap= {};
       colors = img.color_histogram.map(&:first).sort
@@ -155,16 +178,15 @@ module PixelRaster
       # 1 as black is more intuitive as you paint the pixels in black
       # which are set. This is different from the common internal
       # representation of images!
-      colors.reverse! if @light2dark
+      colors.reverse! if light2dark
       colors.each_with_index do |p,i|
         colormap[p]=i
       end
       return colormap
     end
 
-    # replace the extension of +filename+ with +.svg+
-    def svg_ext(filename)
-      File.basename(filename,'.*') + '.svg'
+    def tt
+      puts 'hu'
     end
   end
 end
