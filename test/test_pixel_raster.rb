@@ -26,11 +26,11 @@ describe MagickConverter do
         assert_equal 2, img_stein.colors
       end
 
-      it 'should create a 2 color colormap sorted by intensity (dark to light)' do
+      it 'should create a 2 color colormap sorted by intensity (light to dark)' do
         cm = converter.compute_colormap(img_stein)
         assert_equal 2, cm.length
         cm.inject do |(a,i),(b,j)|
-          a.intensity.must_be :<=, b.intensity 
+          a.intensity.must_be :>=, b.intensity 
           i.must_be :<=, j
           [b,j]
         end 
@@ -67,11 +67,11 @@ describe MagickConverter do
         assert_equal 9, img_9colors.colors
       end
       
-      it 'should create a 9 color colormap sorted by intensity (light to dark)' do
+      it 'should create a 9 color colormap sorted by intensity (dark to light)' do
         cm = converter.compute_colormap(img_9colors)
         assert_equal 9, cm.length
         cm.inject do |(a,i),(b,j)|
-          a.intensity.must_be :>=, b.intensity 
+          a.intensity.must_be :<=, b.intensity 
           i.must_be :<=, j
           [b,j]
         end 
@@ -81,15 +81,15 @@ describe MagickConverter do
         tikz = converter.image2tikz(img_9colors)
         assert_equal '  \begin{tikzpicture}[yscale=-1]
     \draw[step=1,help lines] (0,0) grid (3,3);
-    \node[n8] at (0.5,0.5) {8};
-    \node[n0] at (1.5,0.5) {0};
+    \node[n0] at (0.5,0.5) {0};
+    \node[n8] at (1.5,0.5) {8};
     \node[n4] at (2.5,0.5) {4};
-    \node[n3] at (0.5,1.5) {3};
-    \node[n6] at (1.5,1.5) {6};
-    \node[n2] at (2.5,1.5) {2};
-    \node[n7] at (0.5,2.5) {7};
-    \node[n5] at (1.5,2.5) {5};
-    \node[n1] at (2.5,2.5) {1};
+    \node[n5] at (0.5,1.5) {5};
+    \node[n2] at (1.5,1.5) {2};
+    \node[n6] at (2.5,1.5) {6};
+    \node[n1] at (0.5,2.5) {1};
+    \node[n3] at (1.5,2.5) {3};
+    \node[n7] at (2.5,2.5) {7};
 
   \end{tikzpicture}
 
@@ -108,24 +108,24 @@ describe MagickConverter do
 
      }
     </style>
-  <rect x="0" y="0" width="20" height="20" class="pixel p8" />
-  <text x="10" y="15" text-anchor="middle" class="t8">8</text>
-  <rect x="20" y="0" width="20" height="20" class="pixel p0" />
-  <text x="30" y="15" text-anchor="middle" class="t0">0</text>
+  <rect x="0" y="0" width="20" height="20" class="pixel p0" />
+  <text x="10" y="15" text-anchor="middle" class="t0">0</text>
+  <rect x="20" y="0" width="20" height="20" class="pixel p8" />
+  <text x="30" y="15" text-anchor="middle" class="t8">8</text>
   <rect x="40" y="0" width="20" height="20" class="pixel p4" />
   <text x="50" y="15" text-anchor="middle" class="t4">4</text>
-  <rect x="0" y="20" width="20" height="20" class="pixel p3" />
-  <text x="10" y="35" text-anchor="middle" class="t3">3</text>
-  <rect x="20" y="20" width="20" height="20" class="pixel p6" />
-  <text x="30" y="35" text-anchor="middle" class="t6">6</text>
-  <rect x="40" y="20" width="20" height="20" class="pixel p2" />
-  <text x="50" y="35" text-anchor="middle" class="t2">2</text>
-  <rect x="0" y="40" width="20" height="20" class="pixel p7" />
-  <text x="10" y="55" text-anchor="middle" class="t7">7</text>
-  <rect x="20" y="40" width="20" height="20" class="pixel p5" />
-  <text x="30" y="55" text-anchor="middle" class="t5">5</text>
-  <rect x="40" y="40" width="20" height="20" class="pixel p1" />
-  <text x="50" y="55" text-anchor="middle" class="t1">1</text>
+  <rect x="0" y="20" width="20" height="20" class="pixel p5" />
+  <text x="10" y="35" text-anchor="middle" class="t5">5</text>
+  <rect x="20" y="20" width="20" height="20" class="pixel p2" />
+  <text x="30" y="35" text-anchor="middle" class="t2">2</text>
+  <rect x="40" y="20" width="20" height="20" class="pixel p6" />
+  <text x="50" y="35" text-anchor="middle" class="t6">6</text>
+  <rect x="0" y="40" width="20" height="20" class="pixel p1" />
+  <text x="10" y="55" text-anchor="middle" class="t1">1</text>
+  <rect x="20" y="40" width="20" height="20" class="pixel p3" />
+  <text x="30" y="55" text-anchor="middle" class="t3">3</text>
+  <rect x="40" y="40" width="20" height="20" class="pixel p7" />
+  <text x="50" y="55" text-anchor="middle" class="t7">7</text>
 </svg>
 ', svg
       end
@@ -147,11 +147,11 @@ describe MagickConverter do
       end
 
       # we now have more than 2 colors: light to dark
-      it 'should create a 6 color colormap sorted by intensity (light to dark)' do
+      it 'should create a 6 color colormap sorted by intensity (dark to light)' do
         cm = converter.compute_colormap(img_stein)
         assert_equal 6, cm.length
         cm.inject do |(a,i),(b,j)|
-          a.intensity.must_be :>=, b.intensity 
+          a.intensity.must_be :<=, b.intensity 
           i.must_be :<=, j
           [b,j]
         end 
@@ -167,11 +167,11 @@ describe MagickConverter do
         assert_equal 6, img_9colors.colors
       end
       
-      it 'should create a 9 color colormap sorted by intensity (light to dark)' do
+      it 'should create a 9 color colormap sorted by intensity (dark to light)' do
         cm = converter.compute_colormap(img_9colors)
         assert_equal 6, cm.length
         cm.inject do |(a,i),(b,j)|
-          a.intensity.must_be :>=, b.intensity 
+          a.intensity.must_be :<=, b.intensity 
           i.must_be :<=, j
           [b,j]
         end 

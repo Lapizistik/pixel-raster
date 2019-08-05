@@ -171,7 +171,7 @@ module PixelRaster
       # representation of images!
       # We therefore assume light2dark _unless_ it's a 2-color image
       # if it is not explicitely set:
-      light2dark = colors.length != 2 if light2dark.nil?
+      light2dark = colors.length == 2 if light2dark.nil?
       colors.reverse! if light2dark
       colors.each_with_index do |p,i|
         colormap[p]=i

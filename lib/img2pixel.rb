@@ -90,20 +90,26 @@ module PixelRaster
             outmode = mode
           end
 
+          p.on('-r', '--resize [SPEC]',
+               'Resize image to given dimensions.',
+               'See ImageMagick resize specification.') do |spec|
+            params[:resize] = spec
+          end
+          
           p.on('-l','--light2dark',
-               'color numbering direction.',
-               'Default: light2dark (unless 2 color imgs)') do
+               'Color numbering direction.',
+               'Default: dark2light (unless 2 color imgs)') do
             params[:light2dark] = true
           end
 
           p.on('-L','--dark2light',
-               'color numbering direction.',
-               'Default: light2dark (unless 2 color imgs)') do
+               'Color numbering direction.',
+               'Default: dark2light, (unless 2 color imgs)') do
             params[:light2dark] = false
           end
 
           p.on('-d', '--dir DIR',
-               'directory for output files.',
+               'Directory for output files.',
                'Must exist and be writeable.',
                "Default: same as INFILE") do |dir|
             outdir = dir
