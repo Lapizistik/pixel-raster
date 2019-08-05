@@ -1,8 +1,0 @@
-#! /usr/bin/env ruby
-# -*- coding: utf-8 -*-
-
-require 'xpm2tikz'
-
-include PixelRaster::XPM2TIKZ
-
-command_line

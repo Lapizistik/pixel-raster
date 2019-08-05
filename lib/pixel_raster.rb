@@ -1,21 +1,12 @@
 #! /usr/bin/env ruby
 # -*- coding: utf-8 -*-
 
-begin
-  require 'rmagick'
-rescue LoadError => e
-  warn <<EOM
-
-Could not load “rmagick”.
-
-Please install the RMagick gem or use “xpm2tikz” with xpm files as imput.
-
-EOM
-  exit 1
-end
+require 'rmagick'
 
 module PixelRaster
   class MagickConverter
+
+    attr_reader :nr_of_colors, :bg_color, :resize, :light2dark, :type
 
     # The converter is initialized with the constraints
     # for the images to be processed.
@@ -27,12 +18,12 @@ module PixelRaster
     # @see #read_image
     #
     # @param nr_of_colors      maximum number of colors for the color index
-    # @param bg_color          background color for empty pixel image
+    # @param bg_color          background color for empty pixel image (svg)
     # @param resize [String]   resize string (see ImageMagick resize option)
     # @param light2dark [Boolean] if true 0 is the lightest color
     # @param type [:svg|:tikz] 
     def initialize(nr_of_colors: nil, bg_color: 'white',
-                   resize: nil, light2dark: true,
+                   resize: nil, light2dark: nil,
                    type: :svg)
       @nr_of_colors = nr_of_colors
       @bg_color = bg_color
@@ -74,7 +65,7 @@ module PixelRaster
       end
       # finally we remove duplicate colors.
       image.compress_colormap!
-      
+
       return image
     end
 
@@ -173,20 +164,19 @@ module PixelRaster
     def compute_colormap(img, light2dark: @light2dark)
       # we create a colormap sorted from dark to light
       colormap= {};
-      colors = img.color_histogram.map(&:first).sort
+      colors = img.color_histogram.map(&:first).sort_by(&:intensity)
       # at least for a black and white image having 0 as white and
       # 1 as black is more intuitive as you paint the pixels in black
       # which are set. This is different from the common internal
       # representation of images!
+      # We therefore assume light2dark _unless_ it's a 2-color image
+      # if it is not explicitely set:
+      light2dark = colors.length != 2 if light2dark.nil?
       colors.reverse! if light2dark
       colors.each_with_index do |p,i|
         colormap[p]=i
       end
       return colormap
-    end
-
-    def tt
-      puts 'hu'
     end
   end
 end

@@ -6,13 +6,12 @@ require 'optparse'
 
 # Base module
 module PixelRaster
-
   class MagickConverter
 
     # Parse command line arguments (+ARGV+) and execute accordingly
     #
     # See +img2pixel -h+ for a list of options.
-    def self.command_line
+    def self.command_line(argv=ARGV, stdout=$stdout, stderr=$stderr)
       outfile = nil
       outdir = nil
       outmode = :both
@@ -23,6 +22,10 @@ module PixelRaster
                 bg_color: 'white'
                }
 
+      if argv.length == 0 # no argument given
+        argv << '-h'      # give the help text
+      end
+      
       begin
         OptionParser.new do |p|
           p.accept(Symbol) { |s| s.downcase.to_sym }
@@ -40,13 +43,13 @@ module PixelRaster
           p.separator "may not be supported by your viewer."
           p.separator ""
           p.separator "Options:"
-          p.on_tail("-h", "--help", "Show this help message") do
-            puts p
+          p.on_tail("-h", "--help", "Show this help message and exit.") do
+            stdout.puts p
             exit
           end
           
-          p.on("-V", "--version", "Show version information and exit") do
-            puts File.read(File.join(File.dirname(__FILE__),'..','VERSION'))
+          p.on("-V", "--version", "Show version information and exit.") do
+            stdout.puts File.read(File.join(File.dirname(__FILE__),'..','VERSION'))
             exit
           end
           
@@ -87,41 +90,50 @@ module PixelRaster
             outmode = mode
           end
 
+          p.on('-l','--light2dark',
+               'color numbering direction.',
+               'Default: light2dark (unless 2 color imgs)') do
+            params[:light2dark] = true
+          end
+
+          p.on('-L','--dark2light',
+               'color numbering direction.',
+               'Default: light2dark (unless 2 color imgs)') do
+            params[:light2dark] = false
+          end
+
           p.on('-d', '--dir DIR',
                'directory for output files.',
                'Must exist and be writeable.',
                "Default: same as INFILE") do |dir|
             outdir = dir
           end
-        end.parse!
+        end.parse!(argv)
       rescue OptionParser::ParseError => pe
-        puts pe
+        stderr.puts pe
         exit 22   # Errno::EINVAL::Errno (but may not exist on all platforms)
       end
 
+
       MagickConverter.new(**params) do |c|
-
-            # TODO!! mode: :filled, STDOUT, onefile-mode …
-
-      
-        
         if outfile == '-' # Write everything to standard out
-          ARGV.each do |infile|
-            $stdout << c.convert(infile, mode: :empty)  unless outmode==:filled
-            $stdout << c.convert(infile, mode: :filled) unless outmode==:empty
+          argv.each do |infile|
+            stdout << c.convert(infile, mode: :empty)  unless outmode==:filled
+            stdout << c.convert(infile, mode: :filled) unless outmode==:empty
           end
         elsif outfile # an outfile is given, so write everything in this file
           File.open(outfile, 'w') do |out|
-            ARGV.each do |infile|
+            argv.each do |infile|
               out << c.convert(infile, mode: :empty)
               out << c.convert(infile, mode: :filled)
             end
           end
         else
-          ARGV.each do |infile|
+          argv.each do |infile|
             # if no outfile is given we generate the filename from the infile
             base_out = File.join(outdir || File.dirname(infile),
                                  File.basename(infile, '.*'))
+
             empty_out = base_out + empty_suffix + '.' + params[:type].to_s
             filled_out = base_out + filled_suffix + '.' + params[:type].to_s
             unless outmode==:filled
