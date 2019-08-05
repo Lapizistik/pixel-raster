@@ -13,14 +13,20 @@ columns and rows of pixels the image consists of as well as the color
 The most easy case is a black and white image where each pixel is
 represented by one bit.
 
-## A paint yourself binary pixel image 
+## A paint yourself pixel image 
 
 To explain how an image is represented as data it can help to show
 paint-yourself raster versions (see [images.pdf](images.pdf)).
 
+## img2pixel
+
+The script takes images from the command line as input and
+outputs `svg` or [`tikz`](https://ctan.org/pkg/pgf) code to stdout.
+
+See `img2pixel -h`.
+
 ## xpm2tikz
 
-The script takes xpm images from the command line as input and
-outputs [tikz](https://ctan.org/pkg/pgf) code to stdout.
-
-See `xpm2tikz -h`.
+If you have problems installing RMagick you may want to use an older
+(crappier) version instead: [`pixel_raster_xpm`](https://github.com/Lapizistik/pixel_raster_xpm).
+It can only take simple xpm images as input and produces tikz.
